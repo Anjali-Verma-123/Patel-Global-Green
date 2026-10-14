@@ -24,15 +24,17 @@ connectDB();
 
 const app = express();
 
+
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      process.env.CLIENT_URL,
+      "https://patel-global-green-swart.vercel.app",
     ],
     credentials: true,
   })
 );
+
 
 app.use((req, res, next) => {
   console.log("Content-Type:", req.headers["content-type"]);
