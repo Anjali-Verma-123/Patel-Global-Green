@@ -29,7 +29,7 @@ function FeaturedProducts() {
 
   const fetchFeaturedProducts = async () => {
     try {
-      const res = await api.get("/products");
+      const res = await api.get("/api/products");
 
       const featured = res.data.products.filter(
         (product) => product.featured

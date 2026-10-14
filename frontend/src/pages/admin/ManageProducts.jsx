@@ -8,7 +8,7 @@ function ManageProducts() {
 
   const fetchProducts = async () => {
     try {
-      const res = await api.get("/products");
+      const res = await api.get("/api/products");
 
       setProducts(res.data.products);
     } catch (error) {

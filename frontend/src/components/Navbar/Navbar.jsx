@@ -179,7 +179,7 @@ function Navbar() {
     async function fetchCategories() {
       try {
         const res =
-          await api.get("/categories");
+          await api.get("/api/categories");
 
         setCategories(
           res.data.categories || []
