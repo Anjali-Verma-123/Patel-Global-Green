@@ -47,6 +47,7 @@ function Navbar() {
   const [showMenu, setShowMenu] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
+  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
   const [categories, setCategories] = useState([]);
 
   /* =========================
@@ -168,6 +169,7 @@ function Navbar() {
         setShowMenu(false);
         setShowCategories(false);
         setMobileMenu(false);
+        setMobileCategoriesOpen(false);
       }
     };
     document.addEventListener("keydown", handleEscape);
@@ -183,6 +185,7 @@ function Navbar() {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
         setMobileMenu(false);
+        setMobileCategoriesOpen(false);
       }
     };
     window.addEventListener("resize", handleResize);
@@ -204,6 +207,7 @@ function Navbar() {
               onClick={() => {
                 setMobileMenu(false);
                 setShowCategories(false);
+                setMobileCategoriesOpen(false);
               }}
             >
               <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-green-100 shadow-sm transition-all duration-300 group-hover:border-green-600 sm:h-12 sm:w-12">
@@ -254,7 +258,7 @@ function Navbar() {
                 Plants
               </Link>
 
-              {/* CATEGORIES DROPDOWN */}
+              {/* CATEGORIES DROPDOWN (DESKTOP) */}
               <div className="relative" ref={categoryRef}>
                 <button
                   type="button"
@@ -467,20 +471,48 @@ function Navbar() {
               )}
             </div>
 
-            {/* MOBILE HAMBURGER BUTTON */}
-            <button
-              type="button"
-              onClick={() => setMobileMenu(!mobileMenu)}
-              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-green-50 text-base text-green-700 transition hover:bg-green-100 lg:hidden"
-              aria-label="Toggle menu"
-            >
-              {mobileMenu ? <FaTimes /> : <FaBars />}
-            </button>
+            {/* MOBILE RIGHT BUTTONS (USER AUTH ICON + HAMBURGER) */}
+            <div className="flex items-center gap-1.5 lg:hidden">
+              {token ? (
+                <Link
+                  to="/profile"
+                  onClick={() => {
+                    setMobileMenu(false);
+                    setMobileCategoriesOpen(false);
+                  }}
+                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-green-700 text-xs font-bold text-white shadow-sm transition hover:bg-green-800"
+                  title="Profile"
+                >
+                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={openLogin}
+                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-green-50 text-sm text-green-700 transition hover:bg-green-100"
+                  aria-label="Login / Register"
+                  title="Login / Register"
+                >
+                  <FaUser />
+                </button>
+              )}
+
+              {/* HAMBURGER TOGGLE */}
+              <button
+                type="button"
+                onClick={() => setMobileMenu(!mobileMenu)}
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-green-50 text-base text-green-700 transition hover:bg-green-100"
+                aria-label="Toggle menu"
+              >
+                {mobileMenu ? <FaTimes /> : <FaBars />}
+              </button>
+            </div>
+
           </div>
         </div>
 
         {/* =====================================================
-            MOBILE DRAWER MENU (SEARCH REMOVED FROM HERE)
+            MOBILE DRAWER MENU
         ====================================================== */}
         {mobileMenu && (
           <div className="border-t border-gray-100 bg-white shadow-xl lg:hidden">
@@ -488,7 +520,10 @@ function Navbar() {
               <div className="space-y-1">
                 <Link
                   to="/"
-                  onClick={() => setMobileMenu(false)}
+                  onClick={() => {
+                    setMobileMenu(false);
+                    setMobileCategoriesOpen(false);
+                  }}
                   className="flex items-center rounded-xl px-4 py-3 font-semibold text-gray-700 hover:bg-green-50 hover:text-green-700"
                 >
                   Home
@@ -496,38 +531,57 @@ function Navbar() {
 
                 <Link
                   to="/products"
-                  onClick={() => setMobileMenu(false)}
+                  onClick={() => {
+                    setMobileMenu(false);
+                    setMobileCategoriesOpen(false);
+                  }}
                   className="flex items-center rounded-xl px-4 py-3 font-semibold text-gray-700 hover:bg-green-50 hover:text-green-700"
                 >
                   Plants
                 </Link>
 
-                {/* MOBILE CATEGORIES */}
-                <div className="py-2">
-                  <p className="mb-2 px-4 text-xs font-bold uppercase tracking-wider text-green-600">
-                    Categories
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {categories.map((category) => (
-                      <button
-                        type="button"
-                        key={category._id}
-                        onClick={() => {
-                          navigate(`/products?category=${category._id}`);
-                          setMobileMenu(false);
-                        }}
-                        className="flex items-center gap-2 rounded-xl bg-green-50 px-3 py-3 text-sm text-gray-700 transition hover:bg-green-100 hover:text-green-700"
-                      >
-                        <FaLeaf className="text-xs text-green-600" />
-                        {category.name}
-                      </button>
-                    ))}
-                  </div>
+                {/* MOBILE CATEGORIES ACCORDION / TOGGLE */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setMobileCategoriesOpen(!mobileCategoriesOpen)}
+                    className="flex w-full items-center justify-between rounded-xl px-4 py-3 font-semibold text-gray-700 hover:bg-green-50 hover:text-green-700"
+                  >
+                    <span>Categories</span>
+                    <FaChevronDown
+                      className={`text-xs text-gray-400 transition-transform duration-300 ${
+                        mobileCategoriesOpen ? "rotate-180 text-green-700" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {mobileCategoriesOpen && (
+                    <div className="mb-2 mt-1 grid grid-cols-2 gap-2 pl-2 pr-2">
+                      {categories.map((category) => (
+                        <button
+                          type="button"
+                          key={category._id}
+                          onClick={() => {
+                            navigate(`/products?category=${category._id}`);
+                            setMobileMenu(false);
+                            setMobileCategoriesOpen(false);
+                          }}
+                          className="flex items-center gap-2 rounded-xl bg-green-50 px-3 py-2.5 text-xs font-medium text-gray-700 transition hover:bg-green-100 hover:text-green-700"
+                        >
+                          <FaLeaf className="flex-shrink-0 text-[10px] text-green-600" />
+                          <span className="truncate">{category.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <Link
                   to="/about"
-                  onClick={() => setMobileMenu(false)}
+                  onClick={() => {
+                    setMobileMenu(false);
+                    setMobileCategoriesOpen(false);
+                  }}
                   className="flex items-center rounded-xl px-4 py-3 font-semibold text-gray-700 hover:bg-green-50 hover:text-green-700"
                 >
                   About
@@ -535,7 +589,10 @@ function Navbar() {
 
                 <Link
                   to="/contact"
-                  onClick={() => setMobileMenu(false)}
+                  onClick={() => {
+                    setMobileMenu(false);
+                    setMobileCategoriesOpen(false);
+                  }}
                   className="flex items-center rounded-xl px-4 py-3 font-semibold text-gray-700 hover:bg-green-50 hover:text-green-700"
                 >
                   Contact
@@ -544,7 +601,10 @@ function Navbar() {
                 {/* WISHLIST */}
                 <Link
                   to="/wishlist"
-                  onClick={() => setMobileMenu(false)}
+                  onClick={() => {
+                    setMobileMenu(false);
+                    setMobileCategoriesOpen(false);
+                  }}
                   className="flex items-center justify-between rounded-xl px-4 py-3 font-semibold text-gray-700 hover:bg-red-50 hover:text-red-500"
                 >
                   <span className="flex items-center gap-3">
@@ -561,7 +621,10 @@ function Navbar() {
                 {/* CART */}
                 <Link
                   to="/cart"
-                  onClick={() => setMobileMenu(false)}
+                  onClick={() => {
+                    setMobileMenu(false);
+                    setMobileCategoriesOpen(false);
+                  }}
                   className="flex items-center justify-between rounded-xl px-4 py-3 font-semibold text-gray-700 hover:bg-green-50 hover:text-green-700"
                 >
                   <span className="flex items-center gap-3">
@@ -601,7 +664,10 @@ function Navbar() {
 
                     <Link
                       to="/profile"
-                      onClick={() => setMobileMenu(false)}
+                      onClick={() => {
+                        setMobileMenu(false);
+                        setMobileCategoriesOpen(false);
+                      }}
                       className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-gray-700 hover:bg-green-50"
                     >
                       <FaUser />
@@ -610,7 +676,10 @@ function Navbar() {
 
                     <Link
                       to="/my-orders"
-                      onClick={() => setMobileMenu(false)}
+                      onClick={() => {
+                        setMobileMenu(false);
+                        setMobileCategoriesOpen(false);
+                      }}
                       className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-gray-700 hover:bg-green-50"
                     >
                       <FaBoxOpen />
@@ -620,7 +689,10 @@ function Navbar() {
                     {user?.role === "admin" && (
                       <Link
                         to="/admin"
-                        onClick={() => setMobileMenu(false)}
+                        onClick={() => {
+                          setMobileMenu(false);
+                          setMobileCategoriesOpen(false);
+                        }}
                         className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-gray-700 hover:bg-green-50"
                       >
                         <FaCog />
