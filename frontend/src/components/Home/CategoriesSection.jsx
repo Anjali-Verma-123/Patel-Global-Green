@@ -11,6 +11,7 @@ function CategorySection() {
   const navigate = useNavigate();
 
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const sliderRef = useRef(null);
 
   useEffect(() => {
@@ -19,10 +20,31 @@ function CategorySection() {
 
   const fetchCategories = async () => {
     try {
-      const res = await api.get("/api/categories");
-      setCategories(res.data.categories);
+      setLoading(true);
+      let res;
+      
+      // Pehle /categories try karega, agar 404 aaya toh /api/categories try karega
+      try {
+        res = await api.get("/categories");
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+          res = await api.get("/api/categories");
+        } else {
+          throw err;
+        }
+      }
+
+      // Safe check: data chahe object me aaye ya direct array me
+      const categoryData =
+        res.data?.categories ||
+        res.data?.data ||
+        (Array.isArray(res.data) ? res.data : []);
+
+      setCategories(categoryData);
     } catch (error) {
-      console.log(error);
+      console.error("Categories fetch error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -42,16 +64,13 @@ function CategorySection() {
 
   return (
     <section className="bg-[#f7f6f0] py-20 md:py-24">
-
       <div className="max-w-7xl mx-auto px-6">
 
         {/* Center Heading */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-
           <p className="text-xs md:text-sm uppercase tracking-[0.3em] text-green-700 font-semibold mb-4">
             Grown for your space
           </p>
-
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-gray-900 leading-tight">
             Every Space Deserves
             <br />
@@ -59,12 +78,10 @@ function CategorySection() {
               A Little Green
             </span>
           </h2>
-
           <p className="text-gray-500 mt-5 max-w-2xl mx-auto leading-7">
             Explore our collection of plants, each ready to bring
             freshness, character and life to your home.
           </p>
-
         </div>
 
         {/* Category Slider */}
@@ -88,88 +105,86 @@ function CategorySection() {
             className="flex gap-5 overflow-x-auto scroll-smooth
             snap-x snap-mandatory pb-5 scrollbar-hide px-1"
           >
-
-            {categories.map((category) => (
-
-              <div
-                key={category._id}
-                onClick={() =>
-                  navigate(
-                    `/products?category=${category._id}`
-                  )
-                }
-                className="group min-w-[210px] sm:min-w-[230px]
-                md:min-w-[250px] snap-start cursor-pointer"
-              >
-
-                {/* Image */}
+            {loading ? (
+              <div className="w-full text-center py-10 text-gray-500">
+                Loading categories...
+              </div>
+            ) : categories.length === 0 ? (
+              <div className="w-full text-center py-10 text-gray-400">
+                No categories found.
+              </div>
+            ) : (
+              categories.map((category) => (
                 <div
-                  className="relative aspect-[4/5] rounded-[24px]
-                  overflow-hidden bg-gray-100"
+                  key={category._id}
+                  onClick={() =>
+                    navigate(`/products?category=${category._id}`)
+                  }
+                  className="group min-w-[210px] sm:min-w-[230px]
+                  md:min-w-[250px] snap-start cursor-pointer"
                 >
-
-                  <img
-                    src={
-                      category.image ||
-                      "https://via.placeholder.com/500x600?text=Category"
-                    }
-                    alt={category.name}
-                    className="w-full h-full object-cover
-                    transition-transform duration-700
-                    group-hover:scale-105"
-                  />
-
-                  {/* Bottom gradient */}
+                  {/* Image */}
                   <div
-                    className="absolute inset-x-0 bottom-0 h-1/3
-                    bg-gradient-to-t from-black/40 to-transparent
-                    opacity-0 group-hover:opacity-100
-                    transition-opacity duration-500"
-                  />
-
-                  {/* Arrow */}
-                  <div
-                    className="absolute bottom-4 right-4
-                    w-10 h-10 rounded-full bg-white
-                    flex items-center justify-center
-                    text-gray-800 shadow-lg
-                    opacity-0 translate-y-2
-                    group-hover:opacity-100
-                    group-hover:translate-y-0
-                    transition-all duration-300"
+                    className="relative aspect-[4/5] rounded-[24px]
+                    overflow-hidden bg-gray-100"
                   >
-                    <FaArrowRight className="text-xs" />
+                    <img
+                      src={
+                        category.image ||
+                        "https://via.placeholder.com/500x600?text=Category"
+                      }
+                      alt={category.name}
+                      className="w-full h-full object-cover
+                      transition-transform duration-700
+                      group-hover:scale-105"
+                    />
+
+                    {/* Bottom gradient */}
+                    <div
+                      className="absolute inset-x-0 bottom-0 h-1/3
+                      bg-gradient-to-t from-black/40 to-transparent
+                      opacity-0 group-hover:opacity-100
+                      transition-opacity duration-500"
+                    />
+
+                    {/* Arrow */}
+                    <div
+                      className="absolute bottom-4 right-4
+                      w-10 h-10 rounded-full bg-white
+                      flex items-center justify-center
+                      text-gray-800 shadow-lg
+                      opacity-0 translate-y-2
+                      group-hover:opacity-100
+                      group-hover:translate-y-0
+                      transition-all duration-300"
+                    >
+                      <FaArrowRight className="text-xs" />
+                    </div>
                   </div>
 
+                  {/* Category Name */}
+                  <div className="text-center mt-5">
+                    <h3
+                      className="text-lg md:text-xl font-semibold
+                      text-gray-900
+                      group-hover:text-green-700
+                      transition-colors duration-300"
+                    >
+                      {category.name}
+                    </h3>
+
+                    <p
+                      className="text-xs uppercase tracking-[0.15em]
+                      text-gray-400 mt-2
+                      group-hover:text-green-700
+                      transition-colors"
+                    >
+                      Discover
+                    </p>
+                  </div>
                 </div>
-
-                {/* Category Name */}
-                <div className="text-center mt-5">
-
-                  <h3
-                    className="text-lg md:text-xl font-semibold
-                    text-gray-900
-                    group-hover:text-green-700
-                    transition-colors duration-300"
-                  >
-                    {category.name}
-                  </h3>
-
-                  <p
-                    className="text-xs uppercase tracking-[0.15em]
-                    text-gray-400 mt-2
-                    group-hover:text-green-700
-                    transition-colors"
-                  >
-                    Discover
-                  </p>
-
-                </div>
-
-              </div>
-
-            ))}
-
+              ))
+            )}
           </div>
 
           {/* Right Arrow */}
@@ -183,12 +198,10 @@ function CategorySection() {
           >
             <FaChevronRight className="text-sm" />
           </button>
-
         </div>
 
         {/* Mobile Arrows */}
         <div className="flex md:hidden justify-center gap-3 mt-5">
-
           <button
             onClick={scrollLeft}
             className="w-11 h-11 rounded-full bg-white
@@ -206,11 +219,8 @@ function CategorySection() {
           >
             <FaChevronRight />
           </button>
-
         </div>
-
       </div>
-
     </section>
   );
 }
