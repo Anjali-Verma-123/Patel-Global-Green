@@ -30,6 +30,8 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://patel-global-green-swart.vercel.app",
+      "https://patelglobalgreen.com",
+      "https://www.patelglobalgreen.com"
     ],
     credentials: true,
   })
