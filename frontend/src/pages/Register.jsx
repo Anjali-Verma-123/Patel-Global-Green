@@ -7,6 +7,9 @@ import {
   FaTimes,
   FaLeaf,
   FaArrowRight,
+  FaUser,
+  FaEnvelope,
+  FaLock,
 } from "react-icons/fa";
 
 function Register({ onClose, onOpenLogin }) {
@@ -17,7 +20,7 @@ function Register({ onClose, onOpenLogin }) {
   const [loading, setLoading] = useState(false);
 
   /* ==============================
-     ESCAPE KEY
+      ESCAPE KEY
   ============================== */
 
   useEffect(() => {
@@ -35,7 +38,7 @@ function Register({ onClose, onOpenLogin }) {
   }, [onClose]);
 
   /* ==============================
-     REGISTER
+      REGISTER
   ============================== */
 
   const handleRegister = async (e) => {
@@ -75,7 +78,7 @@ function Register({ onClose, onOpenLogin }) {
   };
 
   /* ==============================
-     OPEN LOGIN
+      OPEN LOGIN
   ============================== */
 
   const handleOpenLogin = () => {
@@ -90,217 +93,137 @@ function Register({ onClose, onOpenLogin }) {
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4 py-6 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm transition-all"
       onClick={onClose}
     >
-      {/* ==============================
-          MODAL
-      ============================== */}
-
+      {/* MODAL CARD (Warm Soft Tinted Background) */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative flex max-h-[95vh] w-full max-w-4xl overflow-hidden rounded-[28px] bg-white shadow-2xl"
+        className="relative w-full max-w-md overflow-hidden rounded-3xl border border-emerald-900/10 bg-[#f9faf9] p-6 shadow-2xl sm:p-9"
       >
-        {/* ==============================
-            CLOSE BUTTON
-        ============================== */}
-
+        {/* CLOSE BUTTON */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-gray-600 shadow-md transition hover:bg-green-700 hover:text-white"
+          className="group absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-gray-400 shadow-sm transition hover:bg-emerald-100 hover:text-emerald-700"
           aria-label="Close"
         >
-          <FaTimes />
+          <FaTimes className="text-sm transition group-hover:rotate-90" />
         </button>
 
-        {/* ==============================
-            LEFT SIDE
-        ============================== */}
-
-        <div
-          className="relative hidden min-h-[600px] w-[46%] bg-cover bg-center lg:flex"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=1200')",
-          }}
-        >
-          <div className="absolute inset-0 bg-green-950/70"></div>
-
-          <div className="relative z-10 flex flex-col justify-between p-10 text-white">
-            <div>
-              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-md">
-                <FaLeaf className="text-2xl text-green-200" />
-              </div>
-
-              <p className="mb-3 text-sm font-bold uppercase tracking-[0.25em] text-green-200">
-                Patel Global Green
-              </p>
-
-              <h2 className="text-4xl font-extrabold leading-tight">
-                Bring More
-                <br />
-                Green Into
-                <br />
-                Your Life.
-              </h2>
-
-              <p className="mt-5 max-w-sm text-sm leading-7 text-green-50/90">
-                Create your account and discover beautiful plants,
-                premium pots and gardening essentials.
-              </p>
-            </div>
-
-            <div className="border-t border-white/20 pt-5">
-              <p className="text-sm text-green-100">
-                Grow Green, Live Better 🌿
-              </p>
-            </div>
+        {/* HEADER */}
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-800 shadow-sm">
+            <FaLeaf className="text-xl" />
           </div>
+          <h2 className="text-2xl font-extrabold text-gray-900">
+            Create Account
+          </h2>
+          <p className="mt-1 text-xs text-gray-500">
+            Join Patel Global Green Nursery today
+          </p>
         </div>
 
-        {/* ==============================
-            RIGHT SIDE
-        ============================== */}
-
-        <div className="flex max-h-[95vh] w-full items-center justify-center overflow-y-auto p-6 sm:p-10 lg:w-[54%]">
-          <form
-            onSubmit={handleRegister}
-            className="w-full max-w-md"
-          >
-            {/* MOBILE BRAND */}
-
-            <div className="mb-7 flex items-center gap-3 lg:hidden">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-100 text-green-700">
-                <FaLeaf />
-              </div>
-
-              <div>
-                <p className="font-extrabold text-green-900">
-                  Patel Global Green
-                </p>
-
-                <p className="text-[10px] font-bold uppercase tracking-widest text-green-600">
-                  Nursery
-                </p>
-              </div>
-            </div>
-
-            {/* HEADING */}
-
-            <div className="mb-7">
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-green-600">
-                Create Account
-              </p>
-
-              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-                Join us today 🌿
-              </h1>
-
-              <p className="mt-2 text-sm leading-6 text-gray-500">
-                Create your account and start your green journey.
-              </p>
-            </div>
-
-            {/* NAME */}
-
-            <div className="mb-4">
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Full Name
-              </label>
-
+        {/* FORM */}
+        <form onSubmit={handleRegister} className="space-y-4">
+          {/* NAME */}
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-700">
+              Full Name
+            </label>
+            <div className="relative">
+              <FaUser className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400" />
               <input
                 type="text"
                 placeholder="Enter your name"
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-sm outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-50"
+                className="w-full rounded-xl border border-gray-200/90 bg-white py-3 pl-10 pr-4 text-sm text-gray-800 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-500/15"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
             </div>
+          </div>
 
-            {/* EMAIL */}
-
-            <div className="mb-4">
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Email Address
-              </label>
-
+          {/* EMAIL */}
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-700">
+              Email Address
+            </label>
+            <div className="relative">
+              <FaEnvelope className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400" />
               <input
                 type="email"
-                placeholder="Enter your email"
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-sm outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-50"
+                placeholder="name@example.com"
+                className="w-full rounded-xl border border-gray-200/90 bg-white py-3 pl-10 pr-4 text-sm text-gray-800 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-500/15"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
+          </div>
 
-            {/* PASSWORD */}
+          {/* PASSWORD */}
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-700">
+              Password
+            </label>
+            <div className="relative">
+              <FaLock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400" />
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Create a password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-xl border border-gray-200/90 bg-white py-3 pl-10 pr-11 text-sm text-gray-800 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-500/15"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-emerald-700"
+                aria-label="Toggle password"
+              >
+                {showPassword ? <FaEyeSlash className="text-sm" /> : <FaEye className="text-sm" />}
+              </button>
+            </div>
+          </div>
 
-            <div className="mb-6">
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Password
-              </label>
-
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Create a password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 pr-12 text-sm outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-50"
-                  required
-                />
-
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-green-700"
-                  aria-label="Toggle password"
-                >
-                  {showPassword ? (
-                    <FaEyeSlash />
-                  ) : (
-                    <FaEye />
-                  )}
-                </button>
+          {/* SUBMIT BUTTON */}
+          <button
+            type="submit"
+            disabled={loading}
+            className={`group mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-xs font-bold tracking-wider uppercase text-white shadow-lg transition-all ${
+              loading
+                ? "cursor-not-allowed bg-emerald-400"
+                : "bg-emerald-700 shadow-emerald-700/25 hover:bg-emerald-800 hover:shadow-xl active:scale-[0.99]"
+            }`}
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                <span>Creating Account...</span>
               </div>
-            </div>
+            ) : (
+              <>
+                <span>Create Account</span>
+                <FaArrowRight className="text-xs transition-transform group-hover:translate-x-1" />
+              </>
+            )}
+          </button>
+        </form>
 
-            {/* REGISTER BUTTON */}
-
+        {/* FOOTER */}
+        <div className="mt-6 border-t border-gray-200/60 pt-5 text-center">
+          <p className="text-xs text-gray-500">
+            Already have an account?{" "}
             <button
-              type="submit"
-              disabled={loading}
-              className={`group flex w-full items-center justify-center gap-3 rounded-xl py-3.5 font-bold text-white shadow-lg transition ${
-                loading
-                  ? "cursor-not-allowed bg-gray-400"
-                  : "bg-green-700 shadow-green-700/20 hover:bg-green-800 hover:shadow-xl"
-              }`}
+              type="button"
+              onClick={handleOpenLogin}
+              className="font-bold text-emerald-700 transition hover:text-emerald-900 hover:underline"
             >
-              {loading ? "Creating Account..." : "Create Account"}
-
-              {!loading && (
-                <FaArrowRight className="text-sm transition-transform group-hover:translate-x-1" />
-              )}
+              Sign In
             </button>
-
-            {/* LOGIN */}
-
-            <div className="mt-6 border-t border-gray-100 pt-5 text-center">
-              <p className="text-sm text-gray-500">
-                Already have an account?{" "}
-                <button
-                  type="button"
-                  onClick={handleOpenLogin}
-                  className="font-bold text-green-700 transition hover:text-green-900 hover:underline"
-                >
-                  Login
-                </button>
-              </p>
-            </div>
-          </form>
+          </p>
         </div>
       </div>
     </div>
