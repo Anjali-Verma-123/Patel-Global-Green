@@ -6,9 +6,9 @@ import { useSearchParams } from "react-router-dom";
 import CategoryFilter from "../components/products/CategoryFilter";
 
 function Products() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // URL SEARCH PARAMETER
+  // URL PARAMETERS
   const keyword = searchParams.get("search") || "";
 
   // STATE
@@ -18,7 +18,7 @@ function Products() {
   );
   const [loading, setLoading] = useState(false);
 
-  // UPDATE CATEGORY WHEN URL CHANGES
+  // UPDATE STATE WHEN URL CHANGES
   useEffect(() => {
     setSelectedCategory(searchParams.get("category") || "");
   }, [searchParams]);
@@ -31,24 +31,19 @@ function Products() {
 
         let url = "";
 
-        // SEARCH
         if (keyword) {
           url = `/products/search?keyword=${encodeURIComponent(keyword)}`;
         } else {
           url = "/products";
         }
 
-        // CATEGORY FILTER
         if (selectedCategory) {
           url += url.includes("?")
             ? `&category=${selectedCategory}`
             : `?category=${selectedCategory}`;
         }
 
-        console.log("PRODUCT API URL:", url);
-
         const res = await api.get(url);
-
         setProducts(res.data.products || []);
       } catch (err) {
         console.log("PRODUCT FETCH ERROR:", err);
@@ -62,240 +57,126 @@ function Products() {
   }, [keyword, selectedCategory]);
 
   return (
-    <div className="bg-white min-h-screen">
-
-      {/* =====================================
-          PAGE INTRO
-      ===================================== */}
-
-      <section className="pt-14 md:pt-20 pb-10">
-
-        <div className="max-w-7xl mx-auto px-6">
-
+    <div className="min-h-screen bg-white">
+      {/* PAGE INTRO */}
+      <section className="pb-10 pt-14 md:pt-20">
+        <div className="mx-auto max-w-7xl px-6">
           <div className="max-w-4xl">
-
-            <div className="flex items-center gap-3 mb-4">
-
-              <span className="w-10 h-[2px] bg-green-700"></span>
-
-              <span className="text-sm uppercase tracking-[3px] font-bold text-green-700">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="h-[2px] w-10 bg-green-700"></span>
+              <span className="text-sm font-bold uppercase tracking-[3px] text-green-700">
                 Our Collection
               </span>
-
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-
+            <h1 className="text-4xl font-bold leading-tight text-gray-900 md:text-5xl lg:text-6xl">
               {keyword ? (
                 <>
                   Discover Results For{" "}
-                  <span className="text-green-700">
-                    "{keyword}"
-                  </span>
+                  <span className="text-green-700">"{keyword}"</span>
                 </>
               ) : (
                 <>
-                  Bring Nature
-                  <span className="text-green-700">
-                    {" "}Into Your Space.
-                  </span>
+                  Bring Nature{" "}
+                  <span className="text-green-700">Into Your Space.</span>
                 </>
               )}
-
             </h1>
 
-            <p className="mt-5 text-gray-500 text-base md:text-lg leading-8 max-w-3xl">
-              Explore our collection of indoor plants, flowering plants,
-              fruit plants, gardening essentials and more — carefully
-              selected to make your home and garden greener.
+            <p className="mt-5 max-w-3xl text-base leading-8 text-gray-500 md:text-lg">
+              Explore our collection of indoor plants, flowering plants, fruit plants, gardening essentials and more.
             </p>
-
           </div>
-
         </div>
-
       </section>
 
-
-      {/* =====================================
-          COLLECTION CONTENT
-      ===================================== */}
-
+      {/* COLLECTION CONTENT */}
       <section className="pb-20">
-
-        <div className="max-w-7xl mx-auto px-6">
-
-          {/* TOP BAR */}
-
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-8">
-
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
-
-              <div className="flex items-center gap-2 text-green-700 mb-2">
-
+              <div className="mb-2 flex items-center gap-2 text-green-700">
                 <FaLeaf className="text-sm" />
-
                 <span className="text-sm font-semibold uppercase tracking-wider">
                   Plant Collection
                 </span>
-
               </div>
 
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-
-                {keyword
-                  ? `Search Results for "${keyword}"`
-                  : "Explore Our Plants"}
-
+              <h2 className="text-2xl font-bold text-gray-900 md:text-3xl">
+                {keyword ? `Search Results for "${keyword}"` : "Explore Our Plants"}
               </h2>
-
             </div>
 
-
-            {/* PRODUCT COUNT */}
-
             {!loading && products.length > 0 && (
-
-              <div className="inline-flex items-center gap-2 bg-green-50 border border-green-100 px-4 py-2.5 rounded-full">
-
-                <span className="w-2 h-2 rounded-full bg-green-600"></span>
-
+              <div className="inline-flex items-center gap-2 rounded-full border border-green-100 bg-green-50 px-4 py-2.5">
+                <span className="h-2 w-2 rounded-full bg-green-600"></span>
                 <span className="text-sm font-semibold text-green-800">
-                  {products.length}{" "}
-                  {products.length === 1 ? "Plant" : "Plants"} Available
+                  {products.length} {products.length === 1 ? "Plant" : "Plants"} Available
                 </span>
-
               </div>
-
             )}
-
           </div>
 
-
-          {/* MAIN GRID */}
-
-          <div className="grid lg:grid-cols-4 gap-8 lg:gap-10">
-
-
-            {/* =====================================
-                CATEGORY SIDEBAR
-            ===================================== */}
-
+          <div className="grid gap-8 lg:grid-cols-4 lg:gap-10">
+            {/* SIDEBAR */}
             <aside className="lg:col-span-1">
-
               <div className="sticky top-28">
-
-                <div className="flex items-center gap-3 mb-5">
-
-                  <div className="w-10 h-10 rounded-xl bg-green-100 text-green-700 flex items-center justify-center">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-green-700">
                     <FaSlidersH />
                   </div>
 
                   <div>
-
-                    <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
                       Browse
                     </p>
-
-                    <h3 className="font-bold text-gray-900">
-                      Categories
-                    </h3>
-
+                    <h3 className="font-bold text-gray-900">Categories</h3>
                   </div>
-
                 </div>
 
-                <div className="bg-green-50/60 rounded-3xl p-4 border border-green-100">
-
+                <div className="rounded-3xl border border-green-100 bg-green-50/60 p-4">
                   <CategoryFilter
                     selectedCategory={selectedCategory}
                     setSelectedCategory={setSelectedCategory}
                   />
-
                 </div>
-
               </div>
-
             </aside>
 
-
-            {/* =====================================
-                PRODUCTS AREA
-            ===================================== */}
-
+            {/* PRODUCT GRID */}
             <div className="lg:col-span-3">
-
-              {/* LOADING */}
-
               {loading ? (
-
-                <div className="min-h-[400px] flex flex-col justify-center items-center">
-
-                  <div className="w-12 h-12 border-4 border-green-100 border-t-green-700 rounded-full animate-spin"></div>
-
-                  <p className="mt-5 text-gray-500 font-medium">
+                <div className="flex min-h-[400px] flex-col items-center justify-center">
+                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-green-100 border-t-green-700"></div>
+                  <p className="mt-5 font-medium text-gray-500">
                     Loading plants...
                   </p>
-
                 </div>
-
               ) : products.length > 0 ? (
-
-                <>
-
-                  {/* PRODUCT GRID */}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-7">
-
-                    {products.map((product) => (
-
-                      <ProductCard
-                        key={product._id}
-                        product={product}
-                      />
-
-                    ))}
-
-                  </div>
-
-                </>
-
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:gap-7 xl:grid-cols-3">
+                  {products.map((product) => (
+                    <ProductCard key={product._id} product={product} />
+                  ))}
+                </div>
               ) : (
-
-                /* =====================================
-                   NO PRODUCTS
-                ===================================== */
-
-                <div className="min-h-[400px] bg-green-50 rounded-[2rem] border border-green-100 flex flex-col items-center justify-center text-center px-6">
-
-                  <div className="w-20 h-20 rounded-full bg-white shadow-sm flex items-center justify-center mb-6">
-
+                <div className="flex min-h-[400px] flex-col items-center justify-center rounded-[2rem] border border-green-100 bg-green-50 px-6 text-center">
+                  <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-sm">
                     <FaLeaf className="text-3xl text-green-600" />
-
                   </div>
 
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+                  <h2 className="text-2xl font-bold text-gray-800 md:text-3xl">
                     No Plants Found
                   </h2>
 
-                  <p className="text-gray-500 mt-3 max-w-md leading-7">
-                    We couldn't find any plants matching your search or
-                    selected category. Try another keyword or browse a
-                    different category.
+                  <p className="mt-3 max-w-md leading-7 text-gray-500">
+                    We couldn't find any plants matching your search or selected category.
                   </p>
-
                 </div>
-
               )}
-
             </div>
-
           </div>
-
         </div>
-
       </section>
-
     </div>
   );
 }

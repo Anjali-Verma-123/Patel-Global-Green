@@ -16,45 +16,17 @@ function EditProduct() {
     stock: "",
     category: "",
     featured: false,
-
     features: [],
-
     sunlight: "",
     watering: "",
     soil: "",
     temperature: "",
   });
 
-  // =========================
-  // MAIN IMAGE
-  // =========================
-
   const [mainImage, setMainImage] = useState(null);
   const [mainImagePreview, setMainImagePreview] = useState("");
-
-  // =========================
-  // ADDITIONAL IMAGES
-  // =========================
-
   const [additionalImages, setAdditionalImages] = useState([]);
-
-  // Each item:
-  // {
-  //   url: existing image URL,
-  //   file: new selected file,
-  //   preview: preview URL,
-  //   deleted: false
-  // }
-
-  // =========================
-  // NEW ADDITIONAL IMAGES
-  // =========================
-
   const [newImages, setNewImages] = useState([]);
-
-  // =========================
-  // FETCH PRODUCT
-  // =========================
 
   useEffect(() => {
     fetchProduct();
@@ -64,7 +36,6 @@ function EditProduct() {
   const fetchProduct = async () => {
     try {
       const res = await api.get(`/products/${id}`);
-
       const data = res.data.product;
 
       setProduct({
@@ -76,24 +47,17 @@ function EditProduct() {
           typeof data.category === "object"
             ? data.category._id
             : data.category || "",
-
         featured: data.featured || false,
-
-        features: Array.isArray(data.features)
-          ? data.features
-          : [],
-
+        features: Array.isArray(data.features) ? data.features : [],
         sunlight: data.plantCare?.sunlight || "",
         watering: data.plantCare?.watering || "",
         soil: data.plantCare?.soil || "",
         temperature: data.plantCare?.temperature || "",
       });
 
-      // Main image
       setMainImagePreview(data.image || "");
 
-      // Additional images
-      const existingImages = Array.isArray(data.images)
+      const formattedExisting = Array.isArray(data.images)
         ? data.images.map((url) => ({
             url,
             file: null,
@@ -102,182 +66,101 @@ function EditProduct() {
           }))
         : [];
 
-      setAdditionalImages(existingImages);
+      setAdditionalImages(formattedExisting);
     } catch (error) {
       console.log("FETCH PRODUCT ERROR:", error);
-      alert(
-        error.response?.data?.message ||
-          "Failed to fetch product"
-      );
+      alert(error.response?.data?.message || "Failed to fetch product");
     }
   };
-
-  // =========================
-  // FETCH CATEGORIES
-  // =========================
 
   const fetchCategories = async () => {
     try {
       const res = await api.get("/api/categories");
-
       setCategories(res.data.categories || []);
     } catch (error) {
       console.log("CATEGORY ERROR:", error);
     }
   };
 
-  // =========================
-  // HANDLE INPUT
-  // =========================
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     setProduct((prev) => ({
       ...prev,
-      [name]:
-        type === "checkbox"
-          ? checked
-          : value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
-
-  // =========================
-  // FEATURES
-  // =========================
 
   const handleFeatureChange = (index, value) => {
     setProduct((prev) => {
       const updatedFeatures = [...prev.features];
-
       updatedFeatures[index] = value;
-
-      return {
-        ...prev,
-        features: updatedFeatures,
-      };
+      return { ...prev, features: updatedFeatures };
     });
   };
 
   const addFeature = () => {
     setProduct((prev) => ({
       ...prev,
-      features: [
-        ...prev.features,
-        "",
-      ],
+      features: [...prev.features, ""],
     }));
   };
 
   const removeFeature = (index) => {
     setProduct((prev) => ({
       ...prev,
-      features: prev.features.filter(
-        (_, i) => i !== index
-      ),
+      features: prev.features.filter((_, i) => i !== index),
     }));
   };
 
-  // =========================
-  // MAIN IMAGE CHANGE
-  // =========================
-
   const handleMainImageChange = (e) => {
     const file = e.target.files?.[0];
-
     if (!file) return;
-
     setMainImage(file);
-
-    setMainImagePreview(
-      URL.createObjectURL(file)
-    );
+    setMainImagePreview(URL.createObjectURL(file));
   };
 
-  // =========================
-  // REPLACE ADDITIONAL IMAGE
-  // =========================
-
-  const handleAdditionalImageChange = (
-    index,
-    e
-  ) => {
+  const handleAdditionalImageChange = (index, e) => {
     const file = e.target.files?.[0];
-
     if (!file) return;
 
     setAdditionalImages((prev) => {
       const updated = [...prev];
-
       updated[index] = {
         ...updated[index],
         file,
         preview: URL.createObjectURL(file),
         deleted: false,
       };
-
       return updated;
     });
   };
-
-  // =========================
-  // DELETE ADDITIONAL IMAGE
-  // =========================
 
   const removeAdditionalImage = (index) => {
     setAdditionalImages((prev) => {
       const updated = [...prev];
-
-      updated[index] = {
-        ...updated[index],
-        deleted: true,
-      };
-
+      updated[index] = { ...updated[index], deleted: true };
       return updated;
     });
   };
 
-  // =========================
-  // ADD NEW IMAGES
-  // =========================
-
   const handleNewImages = (e) => {
-    const files = Array.from(
-      e.target.files || []
-    );
-
+    const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    const formattedFiles = files.map(
-      (file) => ({
-        file,
-        preview: URL.createObjectURL(file),
-      })
-    );
+    const formattedFiles = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
 
-    setNewImages((prev) => [
-      ...prev,
-      ...formattedFiles,
-    ]);
+    setNewImages((prev) => [...prev, ...formattedFiles]);
   };
-
-  // =========================
-  // REMOVE NEW IMAGE
-  // =========================
 
   const removeNewImage = (index) => {
-    setNewImages((prev) =>
-      prev.filter((_, i) => i !== index)
-    );
+    setNewImages((prev) => prev.filter((_, i) => i !== index));
   };
-
-  // =========================
-  // SUBMIT
-  // =========================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (loading) return;
 
     setLoading(true);
@@ -285,354 +168,184 @@ function EditProduct() {
     try {
       const formData = new FormData();
 
-      // =========================
-      // BASIC DETAILS
-      // =========================
+      formData.append("name", product.name);
+      formData.append("description", product.description);
+      formData.append("price", product.price);
+      formData.append("stock", product.stock);
+      formData.append("category", product.category);
+      formData.append("featured", product.featured);
 
-      formData.append(
-        "name",
-        product.name
-      );
+      const cleanedFeatures = product.features
+        .map((feature) => feature.trim())
+        .filter(Boolean);
 
-      formData.append(
-        "description",
-        product.description
-      );
+      formData.append("features", JSON.stringify(cleanedFeatures));
 
-      formData.append(
-        "price",
-        product.price
-      );
-
-      formData.append(
-        "stock",
-        product.stock
-      );
-
-      formData.append(
-        "category",
-        product.category
-      );
-
-      formData.append(
-        "featured",
-        product.featured
-      );
-
-      // =========================
-      // FEATURES
-      // =========================
-
-      const cleanedFeatures =
-        product.features
-          .map((feature) =>
-            feature.trim()
-          )
-          .filter(Boolean);
-
-      formData.append(
-        "features",
-        JSON.stringify(
-          cleanedFeatures
-        )
-      );
-
-      // =========================
-      // PLANT CARE
-      // =========================
-
-      formData.append(
-        "sunlight",
-        product.sunlight
-      );
-
-      formData.append(
-        "watering",
-        product.watering
-      );
-
-      formData.append(
-        "soil",
-        product.soil
-      );
-
-      formData.append(
-        "temperature",
-        product.temperature
-      );
-
-      // =========================
-      // MAIN IMAGE
-      // =========================
+      // Care Information (Sunlight restored)
+      formData.append("sunlight", product.sunlight);
+      formData.append("watering", product.watering);
+      formData.append("soil", product.soil);
+      formData.append("temperature", product.temperature);
 
       if (mainImage) {
-        formData.append(
-          "mainImage",
-          mainImage
-        );
+        formData.append("mainImage", mainImage);
       }
 
-      // =========================
-      // ADDITIONAL IMAGE REPLACEMENTS
-      // =========================
-
       const replacementIndexes = [];
-
-      additionalImages.forEach(
-        (item, index) => {
-          if (
-            item.file &&
-            !item.deleted
-          ) {
-            formData.append(
-              "additionalImages",
-              item.file
-            );
-
-            replacementIndexes.push(
-              index
-            );
-          }
+      additionalImages.forEach((item, index) => {
+        if (item.file && !item.deleted) {
+          formData.append("additionalImages", item.file);
+          replacementIndexes.push(index);
         }
-      );
+      });
 
       formData.append(
         "additionalImageIndexes",
-        JSON.stringify(
-          replacementIndexes
-        )
+        JSON.stringify(replacementIndexes)
       );
 
-      // =========================
-      // DELETED IMAGES
-      // =========================
+      const deletedIndexes = additionalImages
+        .map((item, index) => (item.deleted ? index : null))
+        .filter((index) => index !== null);
 
-      const deletedIndexes =
-        additionalImages
-          .map((item, index) =>
-            item.deleted
-              ? index
-              : null
-          )
-          .filter(
-            (index) => index !== null
-          );
-
-      formData.append(
-        "deletedImageIndexes",
-        JSON.stringify(
-          deletedIndexes
-        )
-      );
-
-      // =========================
-      // NEW ADDITIONAL IMAGES
-      // =========================
+      formData.append("deletedImageIndexes", JSON.stringify(deletedIndexes));
 
       newImages.forEach((item) => {
-        formData.append(
-          "newAdditionalImages",
-          item.file
-        );
+        formData.append("newAdditionalImages", item.file);
       });
 
-      // =========================
-      // UPDATE API
-      // =========================
-
-      const res = await api.put(
-        `/products/update/${id}`,
-        formData
-      );
+      const res = await api.put(`/products/update/${id}`, formData);
 
       if (res.data.success) {
-        alert(
-          "Product Updated Successfully!"
-        );
-
+        alert("Product Updated Successfully!");
         navigate("/admin/products");
       }
     } catch (error) {
-      console.log(
-        "UPDATE PRODUCT ERROR:",
-        error
-      );
-
-      console.log(
-        "RESPONSE:",
-        error.response
-      );
-
-      alert(
-        error.response?.data?.message ||
-          "Failed to update product"
-      );
+      console.log("UPDATE PRODUCT ERROR:", error);
+      alert(error.response?.data?.message || "Failed to update product");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4 md:px-8">
-      <div className="max-w-5xl mx-auto">
-
-        {/* =========================
-            HEADER
-        ========================= */}
-
+    <div className="min-h-screen bg-gray-50 px-4 py-10 md:px-8">
+      <div className="mx-auto max-w-5xl">
         <div className="mb-8">
-          <p className="text-green-700 font-semibold uppercase tracking-wider text-sm">
+          <p className="text-sm font-semibold uppercase tracking-wider text-green-700">
             Admin Panel
           </p>
-
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mt-1">
+          <h1 className="mt-1 text-3xl font-bold text-gray-900 md:text-4xl">
             Edit Product
           </h1>
-
-          <p className="text-gray-500 mt-2">
-            Update product details, images,
-            features and plant care information.
+          <p className="mt-2 text-gray-500">
+            Update product details, images and plant care information.
           </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-7"
-        >
-
-          {/* =========================
-              BASIC INFORMATION
-          ========================= */}
-
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
-
-            <h2 className="text-xl font-bold text-gray-900 mb-6">
+        <form onSubmit={handleSubmit} className="space-y-7">
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm md:p-8">
+            <h2 className="mb-6 text-xl font-bold text-gray-900">
               Product Information
             </h2>
 
             <div className="space-y-5">
-
               <div>
-                <label className="block font-semibold text-gray-700 mb-2">
+                <label className="mb-2 block font-semibold text-gray-700">
                   Product Name
                 </label>
-
                 <input
                   type="text"
                   name="name"
                   value={product.name}
                   onChange={handleChange}
                   required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-2">
+                <label className="mb-2 block font-semibold text-gray-700">
                   Description
                 </label>
-
                 <textarea
                   name="description"
                   value={product.description}
                   onChange={handleChange}
                   required
                   rows="6"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                  className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-5">
-
+              <div className="grid gap-5 md:grid-cols-2">
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-2">
+                  <label className="mb-2 block font-semibold text-gray-700">
                     Price
                   </label>
-
                   <input
                     type="number"
                     name="price"
                     value={product.price}
                     onChange={handleChange}
                     required
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-2">
+                  <label className="mb-2 block font-semibold text-gray-700">
                     Stock
                   </label>
-
                   <input
                     type="number"
                     name="stock"
                     value={product.stock}
                     onChange={handleChange}
                     required
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
-
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-2">
+                <label className="mb-2 block font-semibold text-gray-700">
                   Category
                 </label>
-
                 <select
                   name="category"
                   value={product.category}
                   onChange={handleChange}
                   required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
                 >
-                  <option value="">
-                    Select Category
-                  </option>
-
-                  {categories.map(
-                    (category) => (
-                      <option
-                        key={
-                          category._id
-                        }
-                        value={
-                          category._id
-                        }
-                      >
-                        {category.name}
-                      </option>
-                    )
-                  )}
+                  <option value="">Select Category</option>
+                  {categories.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.name}
+                    </option>
+                  ))}
                 </select>
               </div>
-
             </div>
           </div>
 
-          {/* =========================
-              MAIN IMAGE
-          ========================= */}
-
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
-
-            <h2 className="text-xl font-bold text-gray-900 mb-6">
+          {/* MAIN IMAGE */}
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm md:p-8">
+            <h2 className="mb-6 text-xl font-bold text-gray-900">
               Main Product Image
             </h2>
 
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-
-              <div className="w-full md:w-64 h-64 bg-gray-50 rounded-2xl overflow-hidden border">
+            <div className="flex flex-col items-start gap-6 md:flex-row">
+              <div className="h-64 w-full overflow-hidden rounded-2xl border bg-gray-50 md:w-64">
                 {mainImagePreview ? (
                   <img
                     src={mainImagePreview}
                     alt="Main Product"
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="h-full flex items-center justify-center text-gray-400">
+                  <div className="flex h-full items-center justify-center text-gray-400">
                     No Image
                   </div>
                 )}
@@ -641,7 +354,7 @@ function EditProduct() {
               <div>
                 <label
                   htmlFor="mainImage"
-                  className="inline-flex items-center px-5 py-3 bg-green-700 text-white rounded-xl cursor-pointer hover:bg-green-800 transition"
+                  className="inline-flex cursor-pointer items-center rounded-xl bg-green-700 px-5 py-3 text-white transition hover:bg-green-800"
                 >
                   Change Main Image
                 </label>
@@ -650,41 +363,25 @@ function EditProduct() {
                   id="mainImage"
                   type="file"
                   accept="image/*"
-                  onChange={
-                    handleMainImageChange
-                  }
+                  onChange={handleMainImageChange}
                   className="hidden"
                 />
-
-                <p className="text-sm text-gray-400 mt-3">
-                  JPG, PNG or JPEG
-                </p>
               </div>
-
             </div>
           </div>
 
-          {/* =========================
-              ADDITIONAL IMAGES
-          ========================= */}
-
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
-
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-6">
-
+          {/* ADDITIONAL IMAGES */}
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm md:p-8">
+            <div className="mb-6 flex flex-col justify-between gap-3 md:flex-row md:items-center">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
                   Additional Images
                 </h2>
-
-                <p className="text-gray-500 text-sm mt-1">
-                  Replace or remove existing images.
-                </p>
               </div>
 
               <label
                 htmlFor="newImages"
-                className="inline-flex justify-center items-center px-5 py-3 bg-green-700 text-white rounded-xl cursor-pointer hover:bg-green-800 transition"
+                className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-green-700 px-5 py-3 text-white transition hover:bg-green-800"
               >
                 + Add New Images
               </label>
@@ -694,342 +391,225 @@ function EditProduct() {
                 type="file"
                 accept="image/*"
                 multiple
-                onChange={
-                  handleNewImages
-                }
+                onChange={handleNewImages}
                 className="hidden"
               />
-
             </div>
 
-            {/* Existing Images */}
-
-            {additionalImages.filter(
-              (item) => !item.deleted
-            ).length === 0 ? (
-              <div className="border border-dashed rounded-xl p-8 text-center text-gray-400">
+            {additionalImages.filter((item) => !item.deleted).length === 0 ? (
+              <div className="rounded-xl border border-dashed p-8 text-center text-gray-400">
                 No additional images.
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {additionalImages.map((item, index) => {
+                  if (item.deleted) return null;
 
-                {additionalImages.map(
-                  (item, index) => {
-
-                    if (item.deleted)
-                      return null;
-
-                    return (
-                      <div
-                        key={index}
-                        className="border border-gray-200 rounded-2xl overflow-hidden bg-gray-50"
-                      >
-
-                        <div className="h-52">
-                          <img
-                            src={
-                              item.preview
-                            }
-                            alt={`Additional ${
-                              index + 1
-                            }`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-
-                        <div className="p-4">
-
-                          <label
-                            htmlFor={`replace-${index}`}
-                            className="block text-center bg-white border border-green-600 text-green-700 font-semibold py-2.5 rounded-xl cursor-pointer hover:bg-green-50 transition"
-                          >
-                            Replace Image
-                          </label>
-
-                          <input
-                            id={`replace-${index}`}
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) =>
-                              handleAdditionalImageChange(
-                                index,
-                                e
-                              )
-                            }
-                            className="hidden"
-                          />
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              removeAdditionalImage(
-                                index
-                              )
-                            }
-                            className="w-full mt-2 bg-red-50 text-red-600 border border-red-200 font-semibold py-2.5 rounded-xl hover:bg-red-100 transition"
-                          >
-                            Remove Image
-                          </button>
-
-                        </div>
-
+                  return (
+                    <div
+                      key={index}
+                      className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50"
+                    >
+                      <div className="h-52">
+                        <img
+                          src={item.preview}
+                          alt={`Additional ${index + 1}`}
+                          className="h-full w-full object-cover"
+                        />
                       </div>
-                    );
-                  }
-                )}
 
-              </div>
-            )}
+                      <div className="p-4">
+                        <label
+                          htmlFor={`replace-${index}`}
+                          className="block cursor-pointer rounded-xl border border-green-600 bg-white py-2.5 text-center font-semibold text-green-700 transition hover:bg-green-50"
+                        >
+                          Replace Image
+                        </label>
 
-            {/* New Images */}
-
-            {newImages.length > 0 && (
-              <div className="mt-8">
-
-                <h3 className="font-bold text-gray-800 mb-4">
-                  New Images to Add
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-
-                  {newImages.map(
-                    (item, index) => (
-                      <div
-                        key={index}
-                        className="border rounded-2xl overflow-hidden bg-gray-50"
-                      >
-
-                        <div className="h-44">
-                          <img
-                            src={item.preview}
-                            alt="New"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
+                        <input
+                          id={`replace-${index}`}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleAdditionalImageChange(index, e)
+                          }
+                          className="hidden"
+                        />
 
                         <button
                           type="button"
-                          onClick={() =>
-                            removeNewImage(
-                              index
-                            )
-                          }
-                          className="w-full py-2.5 text-red-600 font-semibold hover:bg-red-50"
+                          onClick={() => removeAdditionalImage(index)}
+                          className="mt-2 w-full rounded-xl border border-red-200 bg-red-50 py-2.5 font-semibold text-red-600 transition hover:bg-red-100"
                         >
-                          Remove
+                          Remove Image
                         </button>
-
                       </div>
-                    )
-                  )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
+            {newImages.length > 0 && (
+              <div className="mt-8">
+                <h3 className="mb-4 font-bold text-gray-800">
+                  New Images to Add
+                </h3>
+
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                  {newImages.map((item, index) => (
+                    <div
+                      key={index}
+                      className="overflow-hidden rounded-2xl border bg-gray-50"
+                    >
+                      <div className="h-44">
+                        <img
+                          src={item.preview}
+                          alt="New"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeNewImage(index)}
+                        className="w-full py-2.5 font-semibold text-red-600 hover:bg-red-50"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
-
           </div>
 
-          {/* =========================
-              FEATURES
-          ========================= */}
-
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
-
-            <div className="flex justify-between items-center mb-6">
-
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  Key Features
-                </h2>
-
-                <p className="text-gray-500 text-sm mt-1">
-                  Add important product features as points.
-                </p>
-              </div>
-
+          {/* FEATURES */}
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm md:p-8">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Key Features</h2>
               <button
                 type="button"
                 onClick={addFeature}
-                className="bg-green-700 text-white px-4 py-2 rounded-xl hover:bg-green-800"
+                className="rounded-xl bg-green-700 px-4 py-2 text-white hover:bg-green-800"
               >
                 + Add Feature
               </button>
-
             </div>
 
             <div className="space-y-3">
+              {product.features.map((feature, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100 font-bold text-green-700">
+                    {index + 1}
+                  </span>
 
-              {product.features.map(
-                (feature, index) => (
-                  <div
-                    key={index}
-                    className="flex gap-3 items-center"
+                  <input
+                    type="text"
+                    value={feature}
+                    onChange={(e) =>
+                      handleFeatureChange(index, e.target.value)
+                    }
+                    className="flex-1 rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => removeFeature(index)}
+                    className="h-10 w-10 rounded-xl bg-red-50 text-red-600 hover:bg-red-100"
                   >
-
-                    <span className="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold shrink-0">
-                      {index + 1}
-                    </span>
-
-                    <input
-                      type="text"
-                      value={feature}
-                      onChange={(e) =>
-                        handleFeatureChange(
-                          index,
-                          e.target.value
-                        )
-                      }
-                      placeholder="Enter product feature"
-                      className="flex-1 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeFeature(
-                          index
-                        )
-                      }
-                      className="w-10 h-10 rounded-xl bg-red-50 text-red-600 hover:bg-red-100"
-                    >
-                      ✕
-                    </button>
-
-                  </div>
-                )
-              )}
-
+                    ✕
+                  </button>
+                </div>
+              ))}
             </div>
-
-            {product.features.length ===
-              0 && (
-              <div className="text-center border border-dashed rounded-xl py-8 text-gray-400">
-                No features added yet.
-              </div>
-            )}
-
           </div>
 
-          {/* =========================
-              PLANT CARE
-          ========================= */}
-
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
-
-            <h2 className="text-xl font-bold text-green-700 mb-2">
+          {/* PLANT CARE INFORMATION (SUNLIGHT INCLUDED) */}
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm md:p-8">
+            <h2 className="mb-4 text-xl font-bold text-green-700">
               🌱 Plant Care Information
             </h2>
-
-            <p className="text-gray-500 text-sm mb-6">
-              Add care information according to
-              this particular plant.
-            </p>
-
-            <div className="grid md:grid-cols-2 gap-5">
-
+            <div className="grid gap-5 md:grid-cols-2">
               <div>
-                <label className="block font-semibold text-gray-700 mb-2">
+                <label className="mb-1 block text-sm font-semibold text-gray-600">
                   ☀️ Sunlight
                 </label>
-
                 <input
                   type="text"
                   name="sunlight"
                   value={product.sunlight}
                   onChange={handleChange}
-                  placeholder="e.g. Bright indirect sunlight"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="e.g. Bright, indirect light"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-2">
+                <label className="mb-1 block text-sm font-semibold text-gray-600">
                   💧 Watering
                 </label>
-
                 <input
                   type="text"
                   name="watering"
                   value={product.watering}
                   onChange={handleChange}
-                  placeholder="e.g. Water twice a week"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="e.g. Water once a week"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-2">
+                <label className="mb-1 block text-sm font-semibold text-gray-600">
                   🌱 Soil
                 </label>
-
                 <input
                   type="text"
                   name="soil"
                   value={product.soil}
                   onChange={handleChange}
-                  placeholder="e.g. Well-draining soil"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="e.g. Well-draining potting mix"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-2">
+                <label className="mb-1 block text-sm font-semibold text-gray-600">
                   🌡️ Temperature
                 </label>
-
                 <input
                   type="text"
                   name="temperature"
                   value={product.temperature}
                   onChange={handleChange}
-                  placeholder="e.g. 18°C - 30°C"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="e.g. 18°C - 28°C"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
-
             </div>
           </div>
 
-          {/* =========================
-              FEATURED
-          ========================= */}
-
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-
-            <label className="flex items-center gap-3 cursor-pointer">
-
+          {/* FEATURED */}
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <label className="flex cursor-pointer items-center gap-3">
               <input
                 type="checkbox"
                 name="featured"
-                checked={
-                  product.featured
-                }
+                checked={product.featured}
                 onChange={handleChange}
-                className="w-5 h-5 accent-green-700"
+                className="h-5 w-5 accent-green-700"
               />
-
               <span className="font-semibold text-gray-700">
                 Show as Featured Product
               </span>
-
             </label>
-
           </div>
 
-          {/* =========================
-              BUTTONS
-          ========================= */}
-
-          <div className="flex flex-col sm:flex-row gap-4">
-
+          <div className="flex flex-col gap-4 sm:flex-row">
             <button
               type="button"
-              onClick={() =>
-                navigate(
-                  "/admin/products"
-                )
-              }
-              className="sm:flex-1 border border-gray-300 bg-white text-gray-700 py-3.5 rounded-xl font-semibold hover:bg-gray-50"
+              onClick={() => navigate("/admin/products")}
+              className="rounded-xl border border-gray-300 bg-white py-3.5 font-semibold text-gray-700 hover:bg-gray-50 sm:flex-1"
             >
               Cancel
             </button>
@@ -1037,19 +617,15 @@ function EditProduct() {
             <button
               type="submit"
               disabled={loading}
-              className={`sm:flex-1 py-3.5 rounded-xl text-white font-semibold transition ${
+              className={`rounded-xl py-3.5 font-semibold text-white transition sm:flex-1 ${
                 loading
-                  ? "bg-gray-400 cursor-not-allowed"
+                  ? "cursor-not-allowed bg-gray-400"
                   : "bg-green-700 hover:bg-green-800"
               }`}
             >
-              {loading
-                ? "Updating..."
-                : "Update Product"}
+              {loading ? "Updating..." : "Update Product"}
             </button>
-
           </div>
-
         </form>
       </div>
     </div>
