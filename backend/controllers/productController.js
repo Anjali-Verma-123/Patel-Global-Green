@@ -4,12 +4,8 @@ import cloudinary from "../config/cloudinary.js";
 // =====================================================
 // ADD PRODUCT
 // =====================================================
-
 export const addProduct = async (req, res) => {
   try {
-    console.log("FILES:", req.files);
-    console.log("BODY:", req.body);
-
     const {
       name,
       description,
@@ -19,116 +15,65 @@ export const addProduct = async (req, res) => {
       quantity,
       featured,
       features,
-
-      // Plant Care
       sunlight,
       watering,
       soil,
       temperature,
-
-      matchSpaces,
-      matchSunlight,
-      careLevel,
     } = req.body;
 
-    // =====================================================
-    // MAIN IMAGE
-    // =====================================================
-
     let imageUrl = "";
-
     if (req.files?.mainImage?.[0]) {
       const file = req.files.mainImage[0];
-
       const result = await cloudinary.uploader.upload(
         `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
-        {
-          folder: "patel-global-green-products",
-        },
+        { folder: "patel-global-green-products" }
       );
-
       imageUrl = result.secure_url;
     }
 
-    // =====================================================
-    // ADDITIONAL IMAGES
-    // =====================================================
-
     let imageUrls = [];
-
     if (req.files?.additionalImages) {
       for (const file of req.files.additionalImages) {
         const result = await cloudinary.uploader.upload(
           `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
-          {
-            folder: "patel-global-green-products",
-          },
+          { folder: "patel-global-green-products" }
         );
-
         imageUrls.push(result.secure_url);
       }
     }
 
-    // =====================================================
-    // FEATURES
-    // =====================================================
-
     let productFeatures = [];
-
     if (features) {
       try {
         const parsedFeatures = JSON.parse(features);
-
-        if (Array.isArray(parsedFeatures)) {
-          productFeatures = parsedFeatures
-            .flat()
-            .map((feature) => String(feature).trim())
-            .filter(Boolean);
-        } else {
-          productFeatures = [String(parsedFeatures).trim()];
-        }
+        productFeatures = Array.isArray(parsedFeatures)
+          ? parsedFeatures.flat().map((f) => String(f).trim()).filter(Boolean)
+          : [String(parsedFeatures).trim()];
       } catch {
         productFeatures = String(features)
           .split("\n")
-          .map((feature) => feature.trim())
+          .map((f) => f.trim())
           .filter(Boolean);
       }
     }
 
-    // =====================================================
-    // CREATE PRODUCT
-    // =====================================================
-
     const product = await Product.create({
       name,
       description,
-      features: productFeatures,
-
       price,
+      stock,
+      quantity,
       category,
-
-      // Images
-      image: imageUrl,
-      images: imageUrls,
-
-      // Plant Care
+      featured,
+      features: productFeatures,
       plantCare: {
         sunlight: sunlight || "",
         watering: watering || "",
         soil: soil || "",
         temperature: temperature || "",
       },
-
-      plantMatch: {
-        spaces: matchSpaces ? JSON.parse(matchSpaces) : [],
-
-        sunlight: matchSunlight || "",
-
-        careLevel: careLevel || "",
-      },
-      stock,
-      quantity,
-      featured,
+      image: imageUrl,
+      images: imageUrls,
     });
 
     res.status(201).json({
@@ -138,7 +83,6 @@ export const addProduct = async (req, res) => {
     });
   } catch (error) {
     console.log("ADD PRODUCT ERROR:", error);
-
     res.status(500).json({
       success: false,
       message: error.message,
@@ -149,69 +93,26 @@ export const addProduct = async (req, res) => {
 // =====================================================
 // GET ALL PRODUCTS
 // =====================================================
-
 export const getProducts = async (req, res) => {
   try {
-    const { category, space, sunlight, careLevel } = req.query;
-
+    const { category } = req.query;
     let filter = {};
 
     if (category) {
       filter.category = category;
     }
 
-    // Find My Plant filters
-
-    if (space) {
-      filter.space = space;
-    }
-
-    if (sunlight) {
-      filter["plantCare.sunlight"] = sunlight;
-    }
-
-    if (careLevel) {
-      filter.careLevel = careLevel;
-    }
-
-    const products = await Product.find(filter).populate("category");
+    const products = await Product.find(filter)
+      .populate("category")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
+      count: products.length,
       products,
     });
   } catch (error) {
     console.log("GET PRODUCTS ERROR:", error);
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// =====================================================
-// GET SINGLE PRODUCT
-// =====================================================
-
-export const getSingleProduct = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const product = await Product.findById(id).populate("category");
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      product,
-    });
-  } catch (error) {
     res.status(500).json({
       success: false,
       message: error.message,
@@ -222,300 +123,195 @@ export const getSingleProduct = async (req, res) => {
 // =====================================================
 // UPDATE PRODUCT
 // =====================================================
-
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log("========== UPDATE PRODUCT ==========");
-    console.log("BODY:", req.body);
-    console.log("FILES:", req.files);
-
-    const product = await Product.findById(id);
-
-    if (!product) {
+    const existingProduct = await Product.findById(id);
+    if (!existingProduct) {
       return res.status(404).json({
         success: false,
         message: "Product not found",
       });
     }
 
-    // =====================================================
-    // BASIC DETAILS
-    // =====================================================
-
-    product.name = req.body.name ?? product.name;
-
-    product.description = req.body.description ?? product.description;
-
-    product.price = req.body.price ?? product.price;
-
-    product.stock = req.body.stock ?? product.stock;
-
-    product.category = req.body.category ?? product.category;
-
-    // =====================================================
-    // FIND MY PLANT
-    // =====================================================
-
-    product.space = req.body.space ?? product.space ?? "";
-
-    product.careLevel = req.body.careLevel ?? product.careLevel ?? "";
-
-    // =====================================================
-    // FEATURED
-    // =====================================================
-
-    product.featured =
-      req.body.featured === "true"
-        ? true
-        : req.body.featured === "false"
-          ? false
-          : product.featured;
-
-    // =====================================================
-    // FEATURES
-    // =====================================================
-
+    let productFeatures = existingProduct.features;
     if (req.body.features) {
       try {
         const parsedFeatures = JSON.parse(req.body.features);
-
-        if (Array.isArray(parsedFeatures)) {
-          product.features = parsedFeatures
-            .flat()
-            .map((feature) => String(feature).trim())
-            .filter(Boolean);
-        }
-      } catch (error) {
-        console.log("FEATURE PARSE ERROR:", error);
-      }
+        productFeatures = Array.isArray(parsedFeatures)
+          ? parsedFeatures.flat().map((f) => String(f).trim()).filter(Boolean)
+          : [String(parsedFeatures).trim()];
+      } catch (e) {}
     }
 
-    // =====================================================
-    // PLANT CARE
-    // =====================================================
-
-    product.plantCare = {
-      sunlight: req.body.sunlight ?? product.plantCare?.sunlight ?? "",
-
-      watering: req.body.watering ?? product.plantCare?.watering ?? "",
-
-      soil: req.body.soil ?? product.plantCare?.soil ?? "",
-
-      temperature: req.body.temperature ?? product.plantCare?.temperature ?? "",
-    };
-
-    // =====================================================
-    // MAIN IMAGE
-    // =====================================================
-
-    if (req.files?.mainImage && req.files.mainImage.length > 0) {
+    let imageUrl = existingProduct.image;
+    if (req.files?.mainImage?.[0]) {
       const file = req.files.mainImage[0];
-
       const result = await cloudinary.uploader.upload(
         `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
-        {
-          folder: "patel-global-green-products",
-        },
+        { folder: "patel-global-green-products" }
       );
-
-      product.image = result.secure_url;
+      imageUrl = result.secure_url;
     }
 
-    // =====================================================
-    // EXISTING ADDITIONAL IMAGES
-    // =====================================================
-
-    let existingImages = Array.isArray(product.images)
-      ? [...product.images]
+    let currentImages = Array.isArray(existingProduct.images)
+      ? [...existingProduct.images]
       : [];
 
-    // =====================================================
-    // DELETED IMAGE INDEXES
-    // =====================================================
-
     let deletedIndexes = [];
-
     if (req.body.deletedImageIndexes) {
       try {
         deletedIndexes = JSON.parse(req.body.deletedImageIndexes);
-      } catch (error) {
-        console.log("DELETE INDEX PARSE ERROR:", error);
-      }
+      } catch (e) {}
     }
-
-    if (Array.isArray(deletedIndexes) && deletedIndexes.length > 0) {
-      existingImages = existingImages.filter(
-        (_, index) => !deletedIndexes.includes(index),
+    if (deletedIndexes.length > 0) {
+      currentImages = currentImages.filter(
+        (_, index) => !deletedIndexes.includes(index)
       );
     }
 
-    // =====================================================
-    // REPLACE ADDITIONAL IMAGES
-    // =====================================================
-
     let replacementIndexes = [];
-
     if (req.body.additionalImageIndexes) {
       try {
         replacementIndexes = JSON.parse(req.body.additionalImageIndexes);
-      } catch (error) {
-        console.log("REPLACEMENT INDEX PARSE ERROR:", error);
-      }
+      } catch (e) {}
     }
-
     const replacementFiles = req.files?.additionalImages || [];
-
     if (replacementFiles.length > 0 && Array.isArray(replacementIndexes)) {
       for (let i = 0; i < replacementFiles.length; i++) {
         const file = replacementFiles[i];
-
         const originalIndex = replacementIndexes[i];
-
-        if (originalIndex === undefined || originalIndex === null) {
-          continue;
-        }
-
-        const result = await cloudinary.uploader.upload(
-          `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
-          {
-            folder: "patel-global-green-products",
-          },
-        );
-
-        if (originalIndex >= 0 && originalIndex < existingImages.length) {
-          existingImages[originalIndex] = result.secure_url;
+        if (originalIndex !== undefined && originalIndex !== null) {
+          const result = await cloudinary.uploader.upload(
+            `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
+            { folder: "patel-global-green-products" }
+          );
+          if (originalIndex >= 0 && originalIndex < currentImages.length) {
+            currentImages[originalIndex] = result.secure_url;
+          }
         }
       }
     }
 
-    // =====================================================
-    // NEW ADDITIONAL IMAGES
-    // =====================================================
-
     const newAdditionalFiles = req.files?.newAdditionalImages || [];
-
     if (newAdditionalFiles.length > 0) {
       for (const file of newAdditionalFiles) {
         const result = await cloudinary.uploader.upload(
           `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
-          {
-            folder: "patel-global-green-products",
-          },
+          { folder: "patel-global-green-products" }
         );
-
-        existingImages.push(result.secure_url);
+        currentImages.push(result.secure_url);
       }
     }
 
-    product.images = existingImages;
+    const updateData = {
+      name: req.body.name ?? existingProduct.name,
+      description: req.body.description ?? existingProduct.description,
+      price: req.body.price ?? existingProduct.price,
+      stock: req.body.stock ?? existingProduct.stock,
+      category: req.body.category ?? existingProduct.category,
+      featured:
+        req.body.featured === "true"
+          ? true
+          : req.body.featured === "false"
+          ? false
+          : existingProduct.featured,
+      features: productFeatures,
+      image: imageUrl,
+      images: currentImages,
+      plantCare: {
+        sunlight: req.body.sunlight ?? existingProduct.plantCare?.sunlight ?? "",
+        watering: req.body.watering ?? existingProduct.plantCare?.watering ?? "",
+        soil: req.body.soil ?? existingProduct.plantCare?.soil ?? "",
+        temperature: req.body.temperature ?? existingProduct.plantCare?.temperature ?? "",
+      },
+    };
 
-    // =====================================================
-    // SAVE
-    // =====================================================
-
-    await product.save();
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      {
+        $set: updateData,
+        $unset: { space: "", plantMatch: "" }, // Space data ko database se saaf karega
+      },
+      { new: true, runValidators: false }
+    );
 
     res.status(200).json({
       success: true,
       message: "Product Updated Successfully",
-      product,
+      product: updatedProduct,
     });
   } catch (error) {
     console.log("UPDATE PRODUCT ERROR:", error);
-
     res.status(500).json({
       success: false,
       message: error.message,
     });
+  }
+};
+
+// =====================================================
+// GET SINGLE PRODUCT
+// =====================================================
+export const getSingleProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id).populate("category");
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+    res.status(200).json({ success: true, product });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // =====================================================
 // DELETE PRODUCT
 // =====================================================
-
 export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-
     const product = await Product.findByIdAndDelete(id);
-
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
+      return res.status(404).json({ success: false, message: "Product not found" });
     }
-
-    res.status(200).json({
-      success: true,
-      message: "Product Deleted Successfully",
-    });
+    res.status(200).json({ success: true, message: "Product Deleted Successfully" });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // =====================================================
 // SEARCH PRODUCT
 // =====================================================
-
 export const searchProduct = async (req, res) => {
   try {
     const { keyword, category } = req.query;
-
     let filter = {};
-
     if (keyword) {
-      filter.name = {
-        $regex: keyword,
-        $options: "i",
-      };
+      filter.name = { $regex: keyword, $options: "i" };
     }
-
     if (category) {
       filter.category = category;
     }
-
     const products = await Product.find(filter).populate("category");
-
-    res.status(200).json({
-      success: true,
-      products,
-    });
+    res.status(200).json({ success: true, products });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // =====================================================
 // FILTER BY CATEGORY
 // =====================================================
-
 export const filterByCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
-
-    const products = await Product.find({
-      category: categoryId,
-    }).populate("category");
-
-    res.status(200).json({
-      success: true,
-      products,
-    });
+    const products = await Product.find({ category: categoryId }).populate("category");
+    res.status(200).json({ success: true, products });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
